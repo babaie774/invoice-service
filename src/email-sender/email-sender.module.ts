@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ScheduleModule } from '@nestjs/schedule'; // Import ScheduleModule
-import { InvoicesService } from './invoices.service';
-import { InvoicesController } from './invoices.controller';
-import { Invoice, InvoiceSchema } from './schemas/invoice.schema';
+import { InvoicesController } from 'src/invoices/invoices.controller';
+import { InvoicesService } from 'src/invoices/invoices.service';
+import { Invoice, InvoiceSchema } from 'src/invoices/schemas/invoice.schema';
 
 @Module({
   imports: [

@@ -1,12 +1,13 @@
-
 # **Invoice and Daily Sales Report System**
 
 ## **Overview**
+
 This project is a backend system that allows users to create and manage invoices. It also generates a daily sales report and sends it via email automatically at 12:00 PM. The system is built using **NestJS**, **MongoDB**, and **RabbitMQ**, with support for **Docker**.
 
 ---
 
 ## **Features**
+
 - **Invoice Management**:
   - Create, retrieve, and filter invoices via RESTful APIs.
 - **Daily Sales Report**:
@@ -18,6 +19,7 @@ This project is a backend system that allows users to create and manage invoices
 ---
 
 ## **Tech Stack**
+
 - **Backend Framework**: [NestJS](https://nestjs.com/)
 - **Database**: [MongoDB](https://www.mongodb.com/)
 - **Message Queue**: [RabbitMQ](https://www.rabbitmq.com/)
@@ -27,6 +29,7 @@ This project is a backend system that allows users to create and manage invoices
 ---
 
 ## **Prerequisites**
+
 - Node.js (v16 or higher)
 - Docker and Docker Compose
 - MongoDB Compass (optional, for GUI database management)
@@ -36,27 +39,35 @@ This project is a backend system that allows users to create and manage invoices
 ## **Setup Instructions**
 
 ### **1. Clone the Repository**
+
 ```bash
 git clone <repository_url>
 cd invoice-service
 ```
 
 ### **2. Install Dependencies**
+
 ```bash
 npm install
 ```
 
 ### **3. Start Docker Containers**
+
 Make sure Docker is running, then start the required services:
+
 ```bash
 docker-compose up -d
 ```
+
 This will:
+
 - Start a MongoDB container on port `27017`.
 - Start a RabbitMQ container on ports `5672` (for messages) and `15672` (for RabbitMQ Management UI).
 
 ### **4. Run the Application**
+
 Start the NestJS application in development mode:
+
 ```bash
 npm run start:dev
 ```
@@ -68,6 +79,7 @@ npm run start:dev
 ### **Base URL**: `http://localhost:3000`
 
 ### **1. Create Invoice**
+
 - **Endpoint**: `POST /invoices`
 - **Body**:
   ```json
@@ -97,6 +109,7 @@ npm run start:dev
   ```
 
 ### **2. Get Invoice by ID**
+
 - **Endpoint**: `GET /invoices/:id`
 - **Response**:
   ```json
@@ -114,6 +127,7 @@ npm run start:dev
   ```
 
 ### **3. Get All Invoices**
+
 - **Endpoint**: `GET /invoices`
 - **Query Parameters** (optional):
   - `startDate`: Filter invoices created on or after this date.
@@ -140,17 +154,21 @@ npm run start:dev
 ## **Testing**
 
 ### **1. Run Unit Tests**
+
 ```bash
 npm run test
 ```
 
 ### **2. Run Integration Tests**
+
 ```bash
 npm run test:e2e
 ```
 
 ### **3. Test Coverage**
+
 To view test coverage:
+
 ```bash
 npm run test:cov
 ```
@@ -160,6 +178,7 @@ npm run test:cov
 ## **RabbitMQ Management**
 
 ### **Access RabbitMQ UI**
+
 - URL: `http://localhost:15672`
 - Default Credentials:
   - **Username**: `guest`
@@ -168,6 +187,7 @@ npm run test:cov
 ---
 
 ## **Project Structure**
+
 ```
 src
 ├── app.module.ts            # Main application module
@@ -192,18 +212,19 @@ services:
     image: mongo
     container_name: mongodb
     ports:
-      - "27017:27017"
+      - '27017:27017'
   rabbitmq:
     image: rabbitmq:3-management
     container_name: rabbitmq
     ports:
-      - "5672:5672"
-      - "15672:15672"
+      - '5672:5672'
+      - '15672:15672'
 ```
 
 ---
 
 ## **Planned Features**
+
 - Email sending via SendGrid.
 - Advanced filtering for invoices.
 - Retry mechanism for RabbitMQ messages.
