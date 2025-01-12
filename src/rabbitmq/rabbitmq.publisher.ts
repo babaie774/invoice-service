@@ -6,7 +6,7 @@ export class RabbitMQPublisher {
   private readonly queueName = 'daily_sales_report';
 
   async publish(queue: string, message: any) {
-    const connection = await connect('amqp://localhost');
+    const connection = await connect('amqp://rabbitmq');
     const channel = await connection.createChannel();
 
     await channel.assertQueue(queue, { durable: true });
