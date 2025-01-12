@@ -3,33 +3,40 @@ version: '3.8'
 services:
   invoice-service:
     build:
-      context: ./invoice-service
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ./src/invoices/Dockerfile
     container_name: invoice-service
     ports:
       - '3000:3000'
     environment:
-      - MONGO_URL=${MONGO_URL}
-      - RABBITMQ_URL=${RABBITMQ_URL}
+      - MONGO_URL=mongodb://mongo:27017/invoice_service
+      - RABBITMQ_URL=amqp://rabbitmq
     depends_on:
       - mongo
       - rabbitmq
-    restart: unless-stopped
-    networks:
-      - app_network
+    restart: always
 
   email-sender:
     build:
-      context: ./email-sender
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ./src/email-sender/Dockerfile
     container_name: email-sender
     environment:
-      - RABBITMQ_URL=${RABBITMQ_URL}
+      - RABBITMQ_URL=amqp://rabbitmq
     depends_on:
       - rabbitmq
-    restart: unless-stopped
-    networks:
-      - app_network
+    restart: always
+
+  email:
+    build:
+      context: .
+      dockerfile: ./src/email/Dockerfile
+    container_name: email
+    environment:
+      - RABBITMQ_URL=amqp://rabbitmq
+    depends_on:
+      - rabbitmq
+    restart: always
 
   mongo:
     image: mongo
@@ -38,14 +45,6 @@ services:
       - '27017:27017'
     volumes:
       - mongodb_data:/data/db
-    restart: unless-stopped
-    healthcheck:
-      test: ['CMD', 'mongo', '--eval', "db.adminCommand('ping')"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-    networks:
-      - app_network
 
   rabbitmq:
     image: rabbitmq:3-management
@@ -54,19 +53,13 @@ services:
       - '5672:5672'
       - '15672:15672'
     environment:
-      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
-      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
-    restart: unless-stopped
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
     healthcheck:
-      test: ['CMD', 'rabbitmqctl', 'status']
+      test: ['CMD', 'rabbitmqctl', 'ping']
       interval: 10s
       timeout: 5s
       retries: 5
-    networks:
-      - app_network
 
 volumes:
   mongodb_data:
-
-networks:
-  app_network:

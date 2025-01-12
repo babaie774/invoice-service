@@ -1,23 +1,20 @@
-# Step 1: Use Node.js base image
+# Use the official Node.js 16 image as the base
 FROM node:16
 
-# Step 2: Set working directory inside the container
+# Set the working directory inside the container
 WORKDIR /app
 
-# Step 3: Copy package.json and package-lock.json
-COPY package*.json ./
+# Copy only the root package.json and package-lock.json to the working directory
+COPY ../../package*.json ./
 
-# Step 4: Install dependencies
+# Install dependencies
 RUN npm install
 
-# Step 5: Copy the rest of the application code
-COPY . .
+# Copy only the specific service's code
+COPY . ./
 
-# Step 6: Build the application
+# Build the service
 RUN npm run build
 
-# Step 7: Expose the application port (if applicable)
-EXPOSE 3003
-
-# Step 8: Define the command to run the app
+# Start the service
 CMD ["npm", "run", "start:prod"]
