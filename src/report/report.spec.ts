@@ -1,13 +1,12 @@
-import { Logger } from '@nestjs/common';
+import { ClientProxy } from '@nestjs/microservices';
 import { Test, TestingModule } from '@nestjs/testing';
 import { InvoicesService } from '../invoices/invoices.service';
-import { RabbitMQService } from '../rabbitmq/rabbitmq.service';
 import { ReportService } from './report.service';
 
 describe('ReportService', () => {
   let service: ReportService;
   let invoicesService: InvoicesService;
-  let RabbitMQService: RabbitMQService;
+  let rabbitClient: ClientProxy;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -20,54 +19,47 @@ describe('ReportService', () => {
           },
         },
         {
-          provide: RabbitMQService,
+          provide: 'RABBITMQ_SERVICE',
           useValue: {
-            publish: jest.fn(),
+            emit: jest.fn(),
           },
         },
-        Logger,
       ],
     }).compile();
 
     service = module.get<ReportService>(ReportService);
     invoicesService = module.get<InvoicesService>(InvoicesService);
-    RabbitMQService = module.get<RabbitMQService>(RabbitMQService);
+    rabbitClient = module.get<ClientProxy>('RABBITMQ_SERVICE');
   });
 
-  it('should be defined', () => {
-    expect(service).toBeDefined();
-  });
-
-  it('should generate and publish daily summary', async () => {
+  it('should generate and publish daily sales summary', async () => {
     const mockInvoices = [
       {
+        date: new Date(), // Use a Date object instead of a string
         amount: 100,
-        items: [
-          { sku: 'item1', qt: 2 },
-          { sku: 'item2', qt: 3 },
-        ],
+        items: [{ sku: 'A1', qt: 2 }],
       },
       {
+        date: new Date(),
         amount: 200,
         items: [
-          { sku: 'item1', qt: 1 },
-          { sku: 'item3', qt: 4 },
+          { sku: 'A1', qt: 3 },
+          { sku: 'B1', qt: 1 },
         ],
       },
     ];
 
-    invoicesService.getAllInvoices = jest.fn().mockResolvedValue(mockInvoices);
+    jest
+      .spyOn(invoicesService, 'getAllInvoices')
+      .mockResolvedValue(mockInvoices);
+    const emitSpy = jest.spyOn(rabbitClient, 'emit');
 
     await service.generateDailySummary();
 
     expect(invoicesService.getAllInvoices).toHaveBeenCalled();
-    expect(RabbitMQService.publish).toHaveBeenCalledWith('daily_sales_report', {
+    expect(emitSpy).toHaveBeenCalledWith('daily-sales-summary', {
       totalSales: 300,
-      skuSummary: {
-        item1: 3,
-        item2: 3,
-        item3: 4,
-      },
+      skuSummary: { A1: 5, B1: 1 },
     });
   });
 });

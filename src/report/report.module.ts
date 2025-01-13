@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { InvoicesModule } from '@src/invoices/invoices.module';
-import { InvoicesService } from '../invoices/invoices.service'; // Import InvoicesService
 import { ReportService } from './report.service';
 
 @Module({
