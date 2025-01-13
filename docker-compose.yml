@@ -16,22 +16,28 @@ services:
       - rabbitmq
     restart: always
 
-  daily-summary:
+  report-service:
     build:
       context: .
-      dockerfile: ./src/daily-summary/Dockerfile
-    container_name: daily-summary
+      dockerfile: ./src/report/Dockerfile
+    container_name: report-service
+    ports:
+      - '3001:3000' # Optional, expose port if needed for debugging
     environment:
+      - MONGO_URL=mongodb://mongo:27017/invoice_service
       - RABBITMQ_URL=amqp://rabbitmq
     depends_on:
+      - mongo
       - rabbitmq
     restart: always
 
-  email:
+  email-service:
     build:
       context: .
       dockerfile: ./src/email/Dockerfile
-    container_name: email
+    container_name: email-service
+    ports:
+      - '3002:3000' # Optional, expose port if needed for debugging
     environment:
       - RABBITMQ_URL=amqp://rabbitmq
     depends_on:

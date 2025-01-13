@@ -1,14 +1,14 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { ScheduleModule } from '@nestjs/schedule'; // Import ScheduleModule
-import { InvoicesService } from './invoices.service';
+import { RabbitMQModule } from '../rabbitmq/rabbitmq.module';
 import { InvoicesController } from './invoices.controller';
+import { InvoicesService } from './invoices.service';
 import { Invoice, InvoiceSchema } from './schemas/invoice.schema';
 
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: Invoice.name, schema: InvoiceSchema }]),
-    ScheduleModule.forRoot(), // Initialize the scheduler
+    RabbitMQModule, // Import RabbitMQModule for publishing reports
   ],
   controllers: [InvoicesController],
   providers: [InvoicesService],
