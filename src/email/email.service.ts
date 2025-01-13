@@ -1,23 +1,15 @@
 import { RabbitSubscribe } from '@nestjs-plus/rabbitmq';
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
 
 @Injectable()
 export class EmailService {
   private readonly logger = new Logger(EmailService.name);
-  private transporter;
 
-  constructor() {
-    this.transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: parseInt(process.env.SMTP_PORT, 10),
-      secure: process.env.SMTP_SECURE === 'true',
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
-      },
-    });
-  }
+  constructor(
+    @Inject('EMAIL_TRANSPORTER')
+    private readonly transporter: nodemailer.Transporter,
+  ) {}
 
   @RabbitSubscribe({
     exchange: 'daily_sales_report',
@@ -54,8 +46,7 @@ export class EmailService {
       Items Sold:
       ${Object.entries(report.skuSummary)
         .map(([sku, quantity]) => `SKU: ${sku}, Quantity: ${quantity}`)
-        .join('\n')}
-    `;
+        .join('\n')}`;
 
     const html = `
       <h1>Daily Sales Report</h1>
@@ -68,8 +59,7 @@ export class EmailService {
               `<li><strong>SKU:</strong> ${sku}, <strong>Quantity:</strong> ${quantity}</li>`,
           )
           .join('')}
-      </ul>
-    `;
+      </ul>`;
 
     return { text, html };
   }
