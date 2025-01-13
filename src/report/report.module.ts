@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ClientsModule, Transport } from '@nestjs/microservices';
+import { InvoicesModule } from '@src/invoices/invoices.module';
 import { InvoicesService } from '../invoices/invoices.service'; // Import InvoicesService
 import { ReportService } from './report.service';
 
@@ -18,7 +19,8 @@ import { ReportService } from './report.service';
         },
       },
     ]),
+    InvoicesModule,
   ],
-  providers: [ReportService, InvoicesService], // Provide ReportService and dependencies
+  providers: [ReportService], // Provide ReportService and dependencies
 })
 export class ReportModule {}

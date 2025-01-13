@@ -1,21 +1,18 @@
+// schemas/invoice.schema.ts
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 
-@Schema()
-export class Invoice extends Document {
-  @Prop({ required: true })
-  customer: string;
+export type InvoiceDocument = Invoice & Document;
 
+@Schema()
+export class Invoice {
   @Prop({ required: true })
   amount: number;
 
   @Prop({ required: true })
-  reference: string;
-
-  @Prop({ required: true, default: Date.now })
   date: Date;
 
-  @Prop([{ sku: String, qt: Number }])
+  @Prop({ type: [{ sku: String, qt: Number }], default: [] })
   items: { sku: string; qt: number }[];
 }
 

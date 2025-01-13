@@ -1,5 +1,5 @@
-import { RabbitSubscribe } from '@golevelup/nestjs-rabbitmq';
 import { Inject, Injectable, Logger } from '@nestjs/common';
+import { ClientProxy, EventPattern } from '@nestjs/microservices';
 import * as nodemailer from 'nodemailer';
 
 @Injectable()
@@ -9,13 +9,10 @@ export class EmailService {
   constructor(
     @Inject('EMAIL_TRANSPORTER')
     private readonly transporter: nodemailer.Transporter,
+    @Inject('RABBITMQ_SERVICE') private readonly rabbitClient: ClientProxy, // Inject RabbitMQ Client
   ) {}
 
-  @RabbitSubscribe({
-    exchange: 'daily_sales_report',
-    routingKey: '',
-    queue: 'daily_sales_queue',
-  })
+  @EventPattern('daily-sales-summary') // Listen to messages with this pattern
   async handleSalesReport(report: any) {
     this.logger.log(`Received sales report: ${JSON.stringify(report)}`);
 
@@ -33,7 +30,10 @@ export class EmailService {
 
       this.logger.log(`Email sent successfully to ${recipient}`);
     } catch (error) {
-      this.logger.error('Failed to process sales report or send email:', error);
+      this.logger.error(
+        'Failed to process sales report or send email:',
+        error.message,
+      );
     }
   }
 

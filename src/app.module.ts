@@ -4,7 +4,6 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { EmailModule } from './email/email.module';
 import { InvoicesModule } from './invoices/invoices.module';
-import { RabbitModule } from './rabbitmq/rabbitmq.module';
 import { ReportModule } from './report/report.module';
 
 @Module({
@@ -13,7 +12,6 @@ import { ReportModule } from './report/report.module';
     InvoicesModule,
     ReportModule,
     EmailModule,
-    RabbitModule,
   ],
   controllers: [AppController],
   providers: [AppService],
