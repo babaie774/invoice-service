@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
-import { RabbitMQModule } from '@src/rabbitmq/rabbitmq.module';
+import { RabbitModule } from '@src/rabbitmq/rabbitmq.module';
 import { emailTransporterProvider } from './email.provider';
 import { EmailService } from './email.service';
 
 @Module({
-  imports: [RabbitMQModule],
+  imports: [RabbitModule],
   providers: [EmailService, emailTransporterProvider],
 })
 export class EmailModule {}

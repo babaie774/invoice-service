@@ -1,3 +1,4 @@
+// src/rabbitmq/rabbitmq.service.ts
 import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import * as amqp from 'amqplib';
 
@@ -76,6 +77,27 @@ export class RabbitMQService implements OnModuleInit, OnModuleDestroy {
     } catch (error) {
       console.error('Failed to publish message:', error);
       // Optionally implement retry logic here
+    }
+  }
+
+  async consume(
+    queueName: string,
+    onMessage: (msg: amqp.ConsumeMessage) => void,
+  ) {
+    try {
+      if (!this.channel) {
+        console.error('Channel is not available. Reconnecting...');
+        await this.connect();
+      }
+      await this.channel.consume(queueName, (msg) => {
+        if (msg !== null) {
+          onMessage(msg);
+          this.channel.ack(msg);
+        }
+      });
+      console.log('Consuming messages from queue:', queueName);
+    } catch (error) {
+      console.error('Failed to consume messages:', error);
     }
   }
 }
