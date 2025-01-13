@@ -196,9 +196,9 @@ src
 │   ├── invoices.service.ts      # Business logic
 │   ├── schemas/             # Mongoose schemas
 │   └── invoices.module.ts       # Module definition
-├── email-sender/            # Email consumer service (RabbitMQ)
-│   ├── email-sender.service.ts  # Consumes RabbitMQ messages
-│   ├── email-sender.module.ts   # Module definition
+├── daily-summary/            # Email consumer service (RabbitMQ)
+│   ├── daily-summary.service.ts  # Consumes RabbitMQ messages
+│   ├── daily-summary.module.ts   # Module definition
 ```
 
 ---

@@ -16,11 +16,11 @@ services:
       - rabbitmq
     restart: always
 
-  email-sender:
+  daily-summary:
     build:
       context: .
-      dockerfile: ./src/email-sender/Dockerfile
-    container_name: email-sender
+      dockerfile: ./src/daily-summary/Dockerfile
+    container_name: daily-summary
     environment:
       - RABBITMQ_URL=amqp://rabbitmq
     depends_on:
