@@ -7,6 +7,8 @@ dotenv.config();
 
 async function bootstrap() {
   try {
+    console.log('Connecting to RabbitMQ with URL:', process.env.RABBITMQ_URL);
+    console.log('Queue Name:', process.env.RABBITMQ_QUEUE);
     console.log('Starting the HTTP server...');
     const app = await NestFactory.create(AppModule);
 
@@ -18,10 +20,13 @@ async function bootstrap() {
     app.connectMicroservice<MicroserviceOptions>({
       transport: Transport.RMQ,
       options: {
-        urls: [process.env.RABBITMQ_URL || 'amqp://localhost'],
+        urls: [process.env.RABBITMQ_URL || 'amqp://localhost:5672'],
         queue: process.env.RABBITMQ_QUEUE || 'daily_sales_report',
         queueOptions: {
           durable: true,
+        },
+        socketOptions: {
+          timeout: 10000, // Increase timeout to 10 seconds
         },
       },
     });

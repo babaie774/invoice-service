@@ -1,13 +1,13 @@
 import { Logger } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { InvoicesService } from '../invoices/invoices.service';
-import { RabbitMQPublisher } from '../rabbitmq/rabbitmq.publisher';
+import { RabbitMQService } from '../rabbitmq/rabbitmq.service';
 import { ReportService } from './report.service';
 
 describe('ReportService', () => {
   let service: ReportService;
   let invoicesService: InvoicesService;
-  let rabbitMQPublisher: RabbitMQPublisher;
+  let RabbitMQService: RabbitMQService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -20,7 +20,7 @@ describe('ReportService', () => {
           },
         },
         {
-          provide: RabbitMQPublisher,
+          provide: RabbitMQService,
           useValue: {
             publish: jest.fn(),
           },
@@ -31,7 +31,7 @@ describe('ReportService', () => {
 
     service = module.get<ReportService>(ReportService);
     invoicesService = module.get<InvoicesService>(InvoicesService);
-    rabbitMQPublisher = module.get<RabbitMQPublisher>(RabbitMQPublisher);
+    RabbitMQService = module.get<RabbitMQService>(RabbitMQService);
   });
 
   it('should be defined', () => {
@@ -61,16 +61,13 @@ describe('ReportService', () => {
     await service.generateDailySummary();
 
     expect(invoicesService.getAllInvoices).toHaveBeenCalled();
-    expect(rabbitMQPublisher.publish).toHaveBeenCalledWith(
-      'daily_sales_report',
-      {
-        totalSales: 300,
-        skuSummary: {
-          item1: 3,
-          item2: 3,
-          item3: 4,
-        },
+    expect(RabbitMQService.publish).toHaveBeenCalledWith('daily_sales_report', {
+      totalSales: 300,
+      skuSummary: {
+        item1: 3,
+        item2: 3,
+        item3: 4,
       },
-    );
+    });
   });
 });

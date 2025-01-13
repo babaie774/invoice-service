@@ -1,4 +1,4 @@
-import { RabbitSubscribe } from '@nestjs-plus/rabbitmq';
+import { RabbitSubscribe } from '@golevelup/nestjs-rabbitmq';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
 
