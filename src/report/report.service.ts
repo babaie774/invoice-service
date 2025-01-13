@@ -12,7 +12,7 @@ export class ReportService {
     @Inject('RABBITMQ_SERVICE') private readonly rabbitClient: ClientProxy,
   ) {}
 
-  @Cron('* * * * *', {
+  @Cron('0 12 * * *', {
     timeZone: process.env.CRON_TIMEZONE || 'UTC',
   })
   async generateDailySummary() {
