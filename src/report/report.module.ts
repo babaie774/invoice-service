@@ -1,17 +1,24 @@
-// src/report/report.module.ts
 import { Module } from '@nestjs/common';
-import { ScheduleModule } from '@nestjs/schedule';
-import { RabbitMQService } from '@src/rabbitmq/rabbitmq.service';
-import { InvoicesModule } from '../invoices/invoices.module';
-import { RabbitModule } from '../rabbitmq/rabbitmq.module';
+import { ClientsModule, Transport } from '@nestjs/microservices';
+import { InvoicesService } from '../invoices/invoices.service'; // Import InvoicesService
 import { ReportService } from './report.service';
 
 @Module({
   imports: [
-    ScheduleModule.forRoot(), // Enable cron jobs
-    InvoicesModule, // Import for InvoicesService
-    RabbitModule, // Import for RabbitMQService
+    ClientsModule.register([
+      {
+        name: 'RABBITMQ_SERVICE', // Match the injection token in ReportService
+        transport: Transport.RMQ,
+        options: {
+          urls: ['amqp://localhost:5672'], // RabbitMQ URL
+          queue: 'daily_sales_report_queue', // Define the queue name
+          queueOptions: {
+            durable: true, // Ensure the queue is durable
+          },
+        },
+      },
+    ]),
   ],
-  providers: [ReportService, RabbitMQService], // Provide ReportService
+  providers: [ReportService, InvoicesService], // Provide ReportService and dependencies
 })
 export class ReportModule {}
