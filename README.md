@@ -1,232 +1,147 @@
 # **Invoice and Daily Sales Report System**
 
-## **Overview**
-
-This project is a backend system that allows users to create and manage invoices. It also generates a daily sales report and sends it via email automatically at 12:00 PM. The system is built using **NestJS**, **MongoDB**, and **RabbitMQ**, with support for **Docker**.
+This project provides a microservices-based system for managing invoices and generating daily sales summaries. It uses **NestJS**, **MongoDB**, **RabbitMQ**, and **Docker Compose** to ensure scalability and reliability.
 
 ---
 
 ## **Features**
 
-- **Invoice Management**:
-  - Create, retrieve, and filter invoices via RESTful APIs.
-- **Daily Sales Report**:
-  - Automatically calculates and generates a daily sales summary report at 12:00 PM.
-  - Publishes the report to a RabbitMQ queue for email sending.
-- **Email Sending**:
-  - Consumes sales report messages and sends them via email (mocked).
+1. **Invoice Management**:
+
+   - Create and retrieve invoices with customer details, total amount, and itemized data.
+
+2. **Daily Sales Report**:
+
+   - Automatically generates a summary of daily sales at a scheduled time.
+   - Publishes the report to RabbitMQ for further processing.
+
+3. **Email Notifications**:
+   - Sends the daily sales summary as an email (mock implementation).
 
 ---
 
-## **Tech Stack**
+## **Quick Start Guide**
 
-- **Backend Framework**: [NestJS](https://nestjs.com/)
-- **Database**: [MongoDB](https://www.mongodb.com/)
-- **Message Queue**: [RabbitMQ](https://www.rabbitmq.com/)
-- **Testing**: Jest & Supertest
-- **Containerization**: Docker & Docker Compose
+### **1. Start Services**
+
+Run the following command in the project root directory:
+
+```bash
+docker-compose up --build
+```
+
+Services will start with the following configurations:
+
+- **Invoice Service**: [http://localhost:3000](http://localhost:3000)
+- **Report Service**: [http://localhost:3001](http://localhost:3001)
+- **Email Service**: [http://localhost:3002](http://localhost:3002)
+- **RabbitMQ UI**: [http://localhost:15672](http://localhost:15672) (User: `guest`, Pass: `guest`)
 
 ---
 
-## **Prerequisites**
+### **2. API Endpoints**
 
-- Node.js (v16 or higher)
-- Docker and Docker Compose
-- MongoDB Compass (optional, for GUI database management)
+#### **Invoice Service (Port 3000)**
 
----
+1. **Create Invoice**
 
-## **Setup Instructions**
+   - **POST** `/invoices`
+   - Example:
+     ```bash
+     curl -X POST http://localhost:3000/invoices -H "Content-Type: application/json" -d '{
+       "customer": "John Doe",
+       "amount": 100.5,
+       "reference": "INV001",
+       "items": [{"sku": "item1", "qt": 2}, {"sku": "item2", "qt": 1}]
+     }'
+     ```
 
-### **1. Clone the Repository**
+2. **Fetch All Invoices**
 
-```bash
-git clone <repository_url>
-cd invoice-service
-```
+   - **GET** `/invoices`
+   - Example:
+     ```bash
+     curl -X GET http://localhost:3000/invoices
+     ```
 
-### **2. Install Dependencies**
-
-```bash
-npm install
-```
-
-### **3. Start Docker Containers**
-
-Make sure Docker is running, then start the required services:
-
-```bash
-docker-compose up -d
-```
-
-This will:
-
-- Start a MongoDB container on port `27017`.
-- Start a RabbitMQ container on ports `5672` (for messages) and `15672` (for RabbitMQ Management UI).
-
-### **4. Run the Application**
-
-Start the NestJS application in development mode:
-
-```bash
-npm run start:dev
-```
+3. **Fetch Invoice by ID**
+   - **GET** `/invoices/:id`
+   - Example:
+     ```bash
+     curl -X GET http://localhost:3000/invoices/INVOICE_ID
+     ```
 
 ---
 
-## **REST API Endpoints**
+### **3. Logs**
 
-### **Base URL**: `http://localhost:3000`
+Monitor all service logs:
 
-### **1. Create Invoice**
+```bash
+docker-compose logs -f
+```
 
-- **Endpoint**: `POST /invoices`
-- **Body**:
-  ```json
-  {
-    "customer": "John Doe",
-    "amount": 150,
-    "reference": "INV-001",
-    "items": [
-      { "sku": "ITEM001", "qt": 2 },
-      { "sku": "ITEM002", "qt": 3 }
-    ]
-  }
-  ```
-- **Response**:
-  ```json
-  {
-    "_id": "invoice_id",
-    "customer": "John Doe",
-    "amount": 150,
-    "reference": "INV-001",
-    "items": [
-      { "sku": "ITEM001", "qt": 2 },
-      { "sku": "ITEM002", "qt": 3 }
-    ],
-    "date": "2025-01-10T00:00:00.000Z"
-  }
-  ```
+---
 
-### **2. Get Invoice by ID**
+### **4. Shut Down**
 
-- **Endpoint**: `GET /invoices/:id`
-- **Response**:
-  ```json
-  {
-    "_id": "invoice_id",
-    "customer": "John Doe",
-    "amount": 150,
-    "reference": "INV-001",
-    "items": [
-      { "sku": "ITEM001", "qt": 2 },
-      { "sku": "ITEM002", "qt": 3 }
-    ],
-    "date": "2025-01-10T00:00:00.000Z"
-  }
-  ```
+Stop all running containers:
 
-### **3. Get All Invoices**
-
-- **Endpoint**: `GET /invoices`
-- **Query Parameters** (optional):
-  - `startDate`: Filter invoices created on or after this date.
-  - `endDate`: Filter invoices created on or before this date.
-- **Response**:
-  ```json
-  [
-    {
-      "_id": "invoice_id",
-      "customer": "John Doe",
-      "amount": 150,
-      "reference": "INV-001",
-      "items": [
-        { "sku": "ITEM001", "qt": 2 },
-        { "sku": "ITEM002", "qt": 3 }
-      ],
-      "date": "2025-01-10T00:00:00.000Z"
-    }
-  ]
-  ```
+```bash
+docker-compose down
+```
 
 ---
 
 ## **Testing**
 
-### **1. Run Unit Tests**
+To run unit and integration tests:
 
-```bash
-npm run test
-```
-
-### **2. Run Integration Tests**
-
-```bash
-npm run test:e2e
-```
-
-### **3. Test Coverage**
-
-To view test coverage:
-
-```bash
-npm run test:cov
-```
-
----
-
-## **RabbitMQ Management**
-
-### **Access RabbitMQ UI**
-
-- URL: `http://localhost:15672`
-- Default Credentials:
-  - **Username**: `guest`
-  - **Password**: `guest`
+1. Stop Docker services if running.
+2. Install dependencies and run tests for each service:
+   ```bash
+   npm install
+   npm test
+   ```
 
 ---
 
 ## **Project Structure**
 
-```
-src
-├── app.module.ts            # Main application module
-├── invoices/                # Invoice module
-│   ├── invoices.controller.ts   # REST API endpoints
-│   ├── invoices.service.ts      # Business logic
-│   ├── schemas/             # Mongoose schemas
-│   └── invoices.module.ts       # Module definition
-├── daily-summary/            # Email consumer service (RabbitMQ)
-│   ├── daily-summary.service.ts  # Consumes RabbitMQ messages
-│   ├── daily-summary.module.ts   # Module definition
-```
+- **Invoice Service**: Manages invoice creation and retrieval.
+- **Report Service**: Generates daily sales summaries and sends them to RabbitMQ.
+- **Email Service**: Consumes RabbitMQ messages and processes email notifications.
 
 ---
 
-## **Docker Compose Services**
+## **Technology Stack**
 
-```yaml
-version: '3.8'
-services:
-  mongo:
-    image: mongo
-    container_name: mongodb
-    ports:
-      - '27017:27017'
-  rabbitmq:
-    image: rabbitmq:3-management
-    container_name: rabbitmq
-    ports:
-      - '5672:5672'
-      - '15672:15672'
-```
+- **NestJS**: Backend framework.
+- **MongoDB**: Database for storing invoices.
+- **RabbitMQ**: Message broker for inter-service communication.
+- **Docker Compose**: Containerized environment for services.
 
 ---
 
-## **Planned Features**
+## **Contributing**
 
-- Email sending via SendGrid.
-- Advanced filtering for invoices.
-- Retry mechanism for RabbitMQ messages.
+1. Fork the repository.
+2. Create a new branch:
+   ```bash
+   git checkout -b feature/your-feature
+   ```
+3. Commit changes:
+   ```bash
+   git commit -m "Add your message"
+   ```
+4. Push to the branch:
+   ```bash
+   git push origin feature/your-feature
+   ```
+5. Open a pull request.
 
 ---
+
+## **License**
+
+This project is licensed under the **MIT License**.
