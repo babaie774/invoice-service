@@ -2,17 +2,17 @@ import { Logger } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { InvoicesService } from '../invoices/invoices.service';
 import { RabbitMQPublisher } from '../rabbitmq/rabbitmq.publisher';
-import { DailySummaryService } from './daily-summary.service';
+import { ReportService } from './report.service';
 
-describe('DailySummaryService', () => {
-  let service: DailySummaryService;
+describe('ReportService', () => {
+  let service: ReportService;
   let invoicesService: InvoicesService;
   let rabbitMQPublisher: RabbitMQPublisher;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        DailySummaryService,
+        ReportService,
         {
           provide: InvoicesService,
           useValue: {
@@ -29,7 +29,7 @@ describe('DailySummaryService', () => {
       ],
     }).compile();
 
-    service = module.get<DailySummaryService>(DailySummaryService);
+    service = module.get<ReportService>(ReportService);
     invoicesService = module.get<InvoicesService>(InvoicesService);
     rabbitMQPublisher = module.get<RabbitMQPublisher>(RabbitMQPublisher);
   });

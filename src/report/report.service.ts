@@ -4,8 +4,8 @@ import { InvoicesService } from '../invoices/invoices.service';
 import { RabbitMQPublisher } from '../rabbitmq/rabbitmq.publisher';
 
 @Injectable()
-export class DailySummaryService {
-  private readonly logger = new Logger(DailySummaryService.name);
+export class ReportService {
+  private readonly logger = new Logger(ReportService.name);
 
   constructor(
     private readonly invoicesService: InvoicesService,
