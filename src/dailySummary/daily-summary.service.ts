@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
-import { InvoicesService } from 'src/invoices/invoices.service';
-import { RabbitMQPublisher } from 'src/rabbitmq/rabbitmq.publisher';
+import { InvoicesService } from '../invoices/invoices.service';
+import { RabbitMQPublisher } from '../rabbitmq/rabbitmq.publisher';
 
 @Injectable()
 export class DailySummaryService {

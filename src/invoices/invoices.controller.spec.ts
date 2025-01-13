@@ -1,74 +1,89 @@
-import { INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import * as request from 'supertest';
-import { AppModule } from '../app.module';
+import { InvoicesController } from './invoices.controller';
 import { InvoicesService } from './invoices.service';
+import { Invoice } from './schemas/invoice.schema';
 
-describe('InvoicesController (e2e)', () => {
-  let app: INestApplication;
+const result: Invoice = {
+  id: '1',
+  _id: 'mocked_id',
+  customer: 'John Doe',
+  amount: 100,
+  reference: 'REF123',
+  date: new Date('2025-01-01'),
+  items: [],
+} as Invoice; // Explicitly cast as Invoice
+
+const id = '1';
+
+describe('InvoicesController', () => {
+  let invoicesController: InvoicesController;
   let invoicesService: InvoicesService;
 
-  const mockInvoice = {
-    customer: 'John Doe',
-    amount: 150,
-    reference: 'INV-001',
-    items: [
-      { sku: 'ITEM001', qt: 2 },
-      { sku: 'ITEM002', qt: 3 },
-    ],
-  };
-
-  beforeAll(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      controllers: [InvoicesController],
+      providers: [
+        {
+          provide: InvoicesService,
+          useValue: {
+            createInvoice: jest.fn(),
+            getInvoiceById: jest.fn(),
+            getAllInvoices: jest.fn(),
+          },
+        },
+      ],
     }).compile();
 
-    app = moduleFixture.createNestApplication();
-    await app.init();
-
-    invoicesService = moduleFixture.get<InvoicesService>(InvoicesService);
+    invoicesController = module.get<InvoicesController>(InvoicesController);
+    invoicesService = module.get<InvoicesService>(InvoicesService);
   });
 
-  afterAll(async () => {
-    await app.close();
+  it('should be defined', () => {
+    expect(invoicesController).toBeDefined();
   });
 
-  it('POST /invoices - should create a new invoice', () => {
-    return request(app.getHttpServer())
-      .post('/invoices')
-      .send(mockInvoice)
-      .expect(201)
-      .then((response) => {
-        expect(response.body.customer).toEqual('John Doe');
-        expect(response.body.amount).toEqual(150);
-      });
+  describe('createInvoice', () => {
+    it('should call InvoicesService.createInvoice with the correct data', async () => {
+      jest.spyOn(invoicesService, 'createInvoice').mockResolvedValue(result);
+
+      expect(await invoicesController.createInvoice(result)).toEqual(result);
+      expect(invoicesService.createInvoice).toHaveBeenCalledWith(result);
+    });
   });
 
-  it('GET /invoices/:id - should retrieve an invoice by ID', () => {
-    jest
-      .spyOn(invoicesService, 'getInvoiceById')
-      .mockResolvedValueOnce(mockInvoice as any);
+  describe('getInvoiceById', () => {
+    it('should call InvoicesService.getInvoiceById with the correct id', async () => {
+      jest.spyOn(invoicesService, 'getInvoiceById').mockResolvedValue(result);
 
-    return request(app.getHttpServer())
-      .get('/invoices/123')
-      .expect(200)
-      .then((response) => {
-        expect(response.body.customer).toEqual('John Doe');
-        expect(response.body.amount).toEqual(150);
-      });
+      expect(await invoicesController.getInvoiceById(id)).toEqual(result);
+      expect(invoicesService.getInvoiceById).toHaveBeenCalledWith(id);
+    });
   });
 
-  it('GET /invoices - should retrieve all invoices', () => {
-    jest
-      .spyOn(invoicesService, 'getAllInvoices')
-      .mockResolvedValueOnce([mockInvoice] as any);
+  describe('getAllInvoices', () => {
+    it('should call InvoicesService.getAllInvoices with the correct query params', async () => {
+      const startDate = '2023-01-01';
+      const endDate = '2023-12-31';
 
-    return request(app.getHttpServer())
-      .get('/invoices')
-      .expect(200)
-      .then((response) => {
-        expect(response.body).toHaveLength(1);
-        expect(response.body[0].customer).toEqual('John Doe');
-      });
+      jest.spyOn(invoicesService, 'getAllInvoices').mockResolvedValue([result]);
+
+      expect(
+        await invoicesController.getAllInvoices(startDate, endDate),
+      ).toEqual([result]);
+      expect(invoicesService.getAllInvoices).toHaveBeenCalledWith(
+        startDate,
+        endDate,
+      );
+    });
+
+    it('should call InvoicesService.getAllInvoices without query params if none provided', async () => {
+      jest.spyOn(invoicesService, 'getAllInvoices').mockResolvedValue([result]);
+
+      expect(await invoicesController.getAllInvoices()).toEqual([result]);
+      expect(invoicesService.getAllInvoices).toHaveBeenCalledWith(
+        undefined,
+        undefined,
+      );
+    });
   });
 });
