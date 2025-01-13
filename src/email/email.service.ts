@@ -1,52 +1,47 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
-import { connect } from 'amqplib';
+import { RabbitSubscribe } from '@nestjs-plus/rabbitmq';
+import { Injectable, Logger } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
 
 @Injectable()
-export class EmailService implements OnModuleInit {
-  private readonly queueName = 'daily_sales_report';
+export class EmailService {
+  private readonly logger = new Logger(EmailService.name);
   private transporter;
 
   constructor() {
     this.transporter = nodemailer.createTransport({
-      host: 'smtp.example.com', // Replace with SMTP host
-      port: 587, // Replace with SMTP port
-      secure: false, // Set true if using SSL (port 465), otherwise false for TLS
+      host: process.env.SMTP_HOST,
+      port: parseInt(process.env.SMTP_PORT, 10),
+      secure: process.env.SMTP_SECURE === 'true',
       auth: {
-        user: 'your-email@example.com', // Replace with email
-        pass: 'your-password', // Replace with email password
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS,
       },
     });
   }
 
-  async onModuleInit() {
-    const connection = await connect('amqp://rabbitmq');
-    const channel = await connection.createChannel();
-
-    await channel.assertQueue(this.queueName, { durable: true });
-
-    channel.consume(this.queueName, async (msg) => {
-      if (msg !== null) {
-        const report = JSON.parse(msg.content.toString());
-        await this.processReport(report);
-        channel.ack(msg);
-      }
-    });
-  }
-
-  private async processReport(report: any) {
-    const emailContent = this.createEmailContent(report);
+  @RabbitSubscribe({
+    exchange: 'daily_sales_report',
+    routingKey: '',
+    queue: 'daily_sales_queue',
+  })
+  async handleSalesReport(report: any) {
+    this.logger.log(`Received sales report: ${JSON.stringify(report)}`);
 
     try {
+      const emailContent = this.createEmailContent(report);
+
+      const recipient =
+        process.env.RECIPIENT_EMAIL || 'default-recipient@example.com';
       await this.sendEmail(
-        'recipient@example.com', // Replace with recipient's email
+        recipient,
         'Daily Sales Report',
         emailContent.text,
         emailContent.html,
       );
-      console.log('Email sent successfully.');
+
+      this.logger.log(`Email sent successfully to ${recipient}`);
     } catch (error) {
-      console.error('Error sending email:', error.message);
+      this.logger.error('Failed to process sales report or send email:', error);
     }
   }
 
@@ -57,8 +52,8 @@ export class EmailService implements OnModuleInit {
       Total Sales: ${report.totalSales}
 
       Items Sold:
-      ${report.itemSummary
-        .map((item) => `SKU: ${item.sku}, Quantity: ${item.totalQuantity}`)
+      ${Object.entries(report.skuSummary)
+        .map(([sku, quantity]) => `SKU: ${sku}, Quantity: ${quantity}`)
         .join('\n')}
     `;
 
@@ -67,10 +62,10 @@ export class EmailService implements OnModuleInit {
       <p><strong>Total Sales:</strong> ${report.totalSales}</p>
       <h2>Items Sold</h2>
       <ul>
-        ${report.itemSummary
+        ${Object.entries(report.skuSummary)
           .map(
-            (item) =>
-              `<li><strong>SKU:</strong> ${item.sku}, <strong>Quantity:</strong> ${item.totalQuantity}</li>`,
+            ([sku, quantity]) =>
+              `<li><strong>SKU:</strong> ${sku}, <strong>Quantity:</strong> ${quantity}</li>`,
           )
           .join('')}
       </ul>
@@ -95,9 +90,9 @@ export class EmailService implements OnModuleInit {
 
     try {
       await this.transporter.sendMail(mailOptions);
-      console.log(`Email sent to ${to}`);
+      this.logger.log(`Email sent to ${to}`);
     } catch (error) {
-      console.error(`Error sending email: ${error.message}`);
+      this.logger.error(`Error sending email to ${to}: ${error.message}`);
       throw error;
     }
   }

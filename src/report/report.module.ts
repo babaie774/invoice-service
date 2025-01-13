@@ -1,16 +1,14 @@
+// src/report/report.module.ts
 import { Module } from '@nestjs/common';
-import { MongooseModule } from '@nestjs/mongoose';
-import { ScheduleModule } from '@nestjs/schedule'; // Import ScheduleModule
-import { InvoicesModule } from '@src/invoices/invoices.module';
-import { Invoice, InvoiceSchema } from '../invoices/schemas/invoice.schema';
+import { ScheduleModule } from '@nestjs/schedule';
+import { InvoicesModule } from '../invoices/invoices.module'; // Import InvoicesModule
 import { ReportService } from './report.service';
 
 @Module({
   imports: [
-    MongooseModule.forFeature([{ name: Invoice.name, schema: InvoiceSchema }]),
-    ScheduleModule.forRoot(), // Initialize the scheduler
-    InvoicesModule,
+    ScheduleModule.forRoot(), // Enable cron jobs
+    InvoicesModule, // Import InvoicesModule to access InvoicesService and RabbitMQModule
   ],
-  providers: [ReportService],
+  providers: [ReportService], // Include ReportService
 })
 export class ReportModule {}

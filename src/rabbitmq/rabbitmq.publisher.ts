@@ -1,20 +1,17 @@
+import { AmqpConnection } from '@nestjs-plus/rabbitmq';
 import { Injectable } from '@nestjs/common';
-import { connect } from 'amqplib';
 
 @Injectable()
 export class RabbitMQPublisher {
-  private readonly queueName = 'daily_sales_report';
+  private readonly exchangeName = 'daily_sales_report';
 
-  async publish(queue: string, message: any) {
-    const connection = await connect('amqp://rabbitmq');
-    const channel = await connection.createChannel();
+  constructor(private readonly amqpConnection: AmqpConnection) {}
 
-    await channel.assertQueue(queue, { durable: true });
-    channel.sendToQueue(queue, Buffer.from(JSON.stringify(message)), {
-      persistent: true,
-    });
-
-    await channel.close();
-    await connection.close();
+  async publish(summary: any): Promise<void> {
+    await this.amqpConnection.publish(
+      this.exchangeName,
+      '', // Routing key
+      summary, // Message payload
+    );
   }
 }

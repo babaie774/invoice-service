@@ -16,36 +16,37 @@ export class ReportService {
   async generateDailySummary() {
     this.logger.log('Generating daily sales summary...');
 
-    // Get today's sales
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    try {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
 
-    const tomorrow = new Date(today);
-    tomorrow.setDate(today.getDate() + 1);
+      const tomorrow = new Date(today);
+      tomorrow.setDate(today.getDate() + 1);
 
-    const invoices = await this.invoicesService.getAllInvoices(
-      today.toISOString(),
-      tomorrow.toISOString(),
-    );
+      const invoices = await this.invoicesService.getAllInvoices(
+        today.toISOString(),
+        tomorrow.toISOString(),
+      );
 
-    // Calculate total sales and quantities
-    const summary = invoices.reduce(
-      (acc, invoice) => {
-        acc.totalSales += invoice.amount;
-        invoice.items.forEach((item) => {
-          if (!acc.skuSummary[item.sku]) {
-            acc.skuSummary[item.sku] = 0;
-          }
-          acc.skuSummary[item.sku] += item.qt;
-        });
-        return acc;
-      },
-      { totalSales: 0, skuSummary: {} },
-    );
+      const summary = invoices.reduce(
+        (acc, invoice) => {
+          acc.totalSales += invoice.amount;
+          invoice.items.forEach((item) => {
+            if (!acc.skuSummary[item.sku]) {
+              acc.skuSummary[item.sku] = 0;
+            }
+            acc.skuSummary[item.sku] += item.qt;
+          });
+          return acc;
+        },
+        { totalSales: 0, skuSummary: {} },
+      );
 
-    // Publish summary to RabbitMQ
-    await this.rabbitMQPublisher.publish('daily_sales_report', summary);
+      await this.rabbitMQPublisher.publish(summary);
 
-    this.logger.log('Daily sales summary generated and published.');
+      this.logger.log('Daily sales summary generated and published.');
+    } catch (error) {
+      this.logger.error('Error generating daily sales summary', error.stack);
+    }
   }
 }
