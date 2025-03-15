@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=example
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      - RABBITMQ_DEFAULT_USER=user
+      - RABBITMQ_DEFAULT_PASS=password
+
+  invoice-service:
+    build:
+      context: ./invoice-service
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - MONGODB_URI=mongodb://root:example@mongodb:27017/invoice?authSource=admin
+      - RABBITMQ_URL=amqp://user:password@rabbitmq:5672
+    depends_on:
+      - mongodb
+      - rabbitmq
+
+  email-service:
+    build:
+      context: ./email-service
+      dockerfile: Dockerfile
+    environment:
+      - RABBITMQ_URL=amqp://user:password@rabbitmq:5672
+      - SMTP_HOST=smtp.example.com
+      - SMTP_PORT=587
+      - SMTP_USER=user@example.com
+      - SMTP_PASS=password
+    depends_on:
+      - rabbitmq
+
+volumes:
+  mongodb_data: 
